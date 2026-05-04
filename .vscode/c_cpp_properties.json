@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "name": "AVR",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:/Users/Shahd/Downloads/Embedded/Lab/Installments/avr8-gnu-toolchain-win32_x86_64/avr/include"
+            ],
+            "defines": [
+                "F_CPU=8000000UL",
+                "__AVR_ATmega32__"
+            ],
+            "compilerPath": "C:/Users/Shahd/Downloads/Embedded/Lab/Installments/avr8-gnu-toolchain-win32_x86_64/bin/avr-gcc.exe",
+            "cStandard": "c11",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}
