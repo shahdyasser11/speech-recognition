@@ -9,6 +9,8 @@
 #include "timer.h"
 #include "features.h"
 #include "templates.h"
+#include "lcd.h"
+#include "uart.h"
 
 /* ================================================================
  *  CONSTANTS
@@ -93,6 +95,8 @@ int main(void)
 {
     ADC_init();
     Timer1_init();
+    UART_init(9600);
+    // initillization el lcd lw 3oznaha
     sei();
 
     while (1)
