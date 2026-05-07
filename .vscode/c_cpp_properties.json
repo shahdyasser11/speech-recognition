@@ -3,15 +3,14 @@
         {
             "name": "AVR",
             "includePath": [
-                "${workspaceFolder}/**",
-                "C:/Users/Shahd/Downloads/Embedded/Lab/Installments/avr8-gnu-toolchain-win32_x86_64/avr/include"
+                "${workspaceFolder}/inc",
+                "C:\\WinAVR-20100110\\avr\\include"
             ],
             "defines": [
-                "F_CPU=8000000UL",
+                "F_CPU=11059200UL",
                 "__AVR_ATmega32__"
             ],
-            "compilerPath": "C:/Users/Shahd/Downloads/Embedded/Lab/Installments/avr8-gnu-toolchain-win32_x86_64/bin/avr-gcc.exe",
-            "cStandard": "c11",
+            "compilerPath": "C:\\WinAVR-20100110\\bin\\avr-gcc.exe",
             "intelliSenseMode": "gcc-x64"
         }
     ],

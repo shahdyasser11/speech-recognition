@@ -53,3 +53,14 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# Editor
+.vscode/
+
+# Build outputs
+*.elf
+*.hex
+
+# OS files
+.DS_Store
+Thumbs.db
