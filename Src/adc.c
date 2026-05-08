@@ -31,6 +31,7 @@ void ADC_init(void)
  *   - waits until hardware clears ADSC (conversion done)
  *   - returns ADCH (8 most significant bits)
  */
+
 uint8_t ADC_read(void)
 {
     ADCSRA |= (1 << ADSC); /* start conversion                */

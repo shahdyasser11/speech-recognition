@@ -7,6 +7,9 @@
 const float word_templates[NUM_WORDS][NUM_FEATURES] = {
     {1.000000, -1.000000, 1.000000},  /* word 0: "on"  */
     {-1.000000, 1.000000, -1.000000}, /* word 1: "off" */
+
+    //  ON – OFF – START – STOP – LEFT – RIGHT – UP – DOWN
+    //   0 -  1  -  2  -   3   -   4   -   5   -  6 -   7
 };
 
 const float feature_mean[NUM_FEATURES] = {

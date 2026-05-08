@@ -34,6 +34,7 @@ volatile uint8_t isr_buf = 0;   /* which buffer ISR is filling now  */
 volatile uint8_t isr_idx = 0;   /* position inside that buffer      */
 volatile uint8_t frame_rdy = 0; /* 1 = ISR finished a frame         */
 volatile uint8_t recording = 0; /* 1 = actively capturing audio     */
+char WORD[6];
 
 /* ================================================================
  *  ISR — fires 8000 times per second (set up by Timer1_init)
@@ -90,13 +91,105 @@ static uint8_t classify(Features avg)
 
     return best_word;
 }
+void Leds_init()
+{
+
+    DDRA |= (1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7);
+    DDRC |= (1 << PC3);
+}
+
+void outputLeds(uint8_t word)
+{
+    switch (word)
+    {
+    case 0: // on
+        PORTA |= (1 << PA1);
+        PORTA &= ~((1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7));
+        PORTC &= ~(1 << PC3);
+        break;
+    case 1: // off
+        PORTA |= (1 << PA2);
+        PORTA &= ~((1 << PA1) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7));
+        PORTC &= ~(1 << PC3);
+        break;
+    case 2: // start
+        PORTA |= (1 << PA3);
+        PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7));
+        PORTC &= ~(1 << PC3);
+        break;
+    case 3: // stop
+        PORTA |= (1 << PA4);
+        PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA5) | (1 << PA6) | (1 << PA7));
+        PORTC &= ~(1 << PC3);
+        break;
+    case 4: // left
+        PORTA |= (1 << PA5);
+        PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA6) | (1 << PA7));
+        PORTC &= ~(1 << PC3);
+        break;
+    case 5: // right
+        PORTA |= (1 << PA6);
+        PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA7));
+        PORTC &= ~(1 << PC3);
+        break;
+    case 6: // up
+        PORTA |= (1 << PA7);
+        PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6));
+        PORTC &= ~(1 << PC3);
+        break;
+    case 7: // down
+        PORTC |= (1 << PC3);
+        PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7));
+        break;
+
+    default:
+        break;
+    }
+}
+
+void outputLCD(uint8_t word)
+{
+    LCD_Clear();
+    switch (word)
+    {
+    case 0: // on
+        strcpy(WORD, "ON");
+        break;
+    case 1: // off
+        strcpy(WORD, "OFF");
+        break;
+    case 2: // start
+        strcpy(WORD, "START");
+        break;
+    case 3: // stop
+        strcpy(WORD, "STOP");
+        break;
+    case 4: // left
+        strcpy(WORD, "LEFT");
+        break;
+    case 5: // right
+        strcpy(WORD, "RIGHT");
+        break;
+    case 6: // up
+        strcpy(WORD, "UP");
+        break;
+    case 7: // down
+        strcpy(WORD, "DOWN");
+        break;
+
+    default:
+        break;
+    }
+    LCD_String_xy(0, 5, WORD);
+}
 
 int main(void)
 {
     ADC_init();
     Timer1_init();
+    Leds_init();
+    LCD_Init();
     UART_init(9600);
-    // initillization el lcd lw 3oznaha
     sei();
 
     while (1)
@@ -147,7 +240,16 @@ int main(void)
         avg.envelope = sum_env / NUM_FRAMES;
 
         uint8_t word = classify(avg);
+        outputLeds(word);
+        outputLCD(word);
     }
+    // to be implemented :
+    // Bonus Idea: UART Command Interface
+
+    // The document suggests a "Bonus Idea" to "Add UART command interface".
+
+    // This would allow you to trigger the recording from your computer keyboard (e.g., press 'r' to start sampling)
+    // rather than relying solely on the Energy Threshold trigger in your main.c.
 
     return 0;
 }
