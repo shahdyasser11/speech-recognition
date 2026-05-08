@@ -15,6 +15,9 @@ int UART_getChar(FILE *stream);
 int UART_putChar(char c, FILE *stream);
 void UART_send_string(char *str);
 void UART_get_string(char *buffer, uint8_t max_len);
+void UART_menu();
+void UART_handle_command(char cmd);
+int8_t UART_availiable();
 
 // Global file stream declaration for printf/scanf support
 extern FILE uart_str;

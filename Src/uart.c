@@ -56,6 +56,48 @@ void UART_get_string(char *buffer, uint8_t max_len)
     }
     buffer[i] = '\0'; // Null-terminate string
 }
+void UART_menu()
+{
+    printf(".....choose your option.......\n");
+    printf(" 1 - press r to start recording\n");
+    printf(" 2 - press s for system status\n");
+    printf(" 3 - press  c to clear the lcd and the leds\n");
+}
+int8_t UART_availiable()
+{
+    if (UCSRA & (1 << RXC))
+    {
+        return 1;
+    }
+    return 0;
+}
+
+void UART_handle_command(char cmd)
+{
+    switch (cmd)
+    {
+    case 'r': // Force Start Recording
+        UART_send_string("\r\nManual Trigger: Speak now...\r\n");
+        // You can set a flag here to skip the Energy Threshold check
+        break;
+
+    case 's': // System Status
+        printf("\r\n--- System Status ---\n");
+        printf("CPU: 11.0592MHz\n");
+        printf("Sampling: 8kHz\n");
+        break;
+
+    case 'c': // Clear Screen/LEDs
+        LCD_Clear();
+        PORTA &= ~0xFE; // Clear PA1-PA7
+        PORTC &= ~(1 << PC3);
+        break;
+
+    default:
+        printf("\r\nUnknown Command: %c\n", cmd);
+        break;
+    }
+}
 
 // Initialize the stream for standard I/O redirection
 FILE uart_str = FDEV_SETUP_STREAM(UART_putChar, UART_getChar, _FDEV_SETUP_RW);

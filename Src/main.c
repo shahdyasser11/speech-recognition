@@ -191,9 +191,14 @@ int main(void)
     LCD_Init();
     UART_init(9600);
     sei();
-
+    UART_menu();
     while (1)
     {
+        if (UART_availiable())
+        {
+            char cmd = UART_getChar(NULL);
+            UART_handle_command(cmd);
+        }
 
         uint8_t raw = ADC_read();
         int8_t dev = (int8_t)((int16_t)raw - 128);
@@ -243,13 +248,6 @@ int main(void)
         outputLeds(word);
         outputLCD(word);
     }
-    // to be implemented :
-    // Bonus Idea: UART Command Interface
-
-    // The document suggests a "Bonus Idea" to "Add UART command interface".
-
-    // This would allow you to trigger the recording from your computer keyboard (e.g., press 'r' to start sampling)
-    // rather than relying solely on the Energy Threshold trigger in your main.c.
 
     return 0;
 }
