@@ -4,7 +4,7 @@ import librosa
 
 
 DATASET_PATH = "recordings"
-WORDS = ["on", "off"]
+WORDS = ["on", "off", "start", "stop", "left", "right", "up", "down"]
 
 SAMPLE_RATE = 8000
 FRAME_SIZE = 200      # ~25 ms
@@ -128,7 +128,7 @@ def generate_header(templates, mean, std):
         f.write("#ifndef TEMPLATES_H\n")
         f.write("#define TEMPLATES_H\n\n")
 
-        f.write("#define NUM_WORDS 2\n")
+        f.write("#define NUM_WORDS 8\n")
         f.write("#define NUM_FEATURES 3\n\n")
 
         f.write("const float word_templates[NUM_WORDS][NUM_FEATURES] = {\n")
