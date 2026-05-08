@@ -271,7 +271,7 @@ int main(void)
         avg.envelope = sum_env / NUM_FRAMES;
 
         uint8_t word = classify(avg);
-        printf("Features -> RMS : %f , ZCR : %f , ENV: %f \n", (double)avg.rms, (double)avg.zcr, (double)avg.envelope);
+        printf("Features -> RMS : %f , ZCR : %f , ENV: %f \n", avg.rms, avg.zcr, avg.envelope);
         outputLeds(word);
         outputLCD(word);
     }
