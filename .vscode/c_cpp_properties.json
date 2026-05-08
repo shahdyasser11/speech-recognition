@@ -10,7 +10,7 @@
                 "F_CPU=11059200UL",
                 "__AVR_ATmega32__"
             ],
-            "compilerPath": "/opt/homebrew/bin/avr-gcc",
+            "compilerPath": "C:/WinAVR-20100110/bin/avr-gcc.exe",
             "intelliSenseMode": "gcc-x64"
         },
         {

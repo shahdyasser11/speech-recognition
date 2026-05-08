@@ -15,9 +15,9 @@
 /* ================================================================
  *  CONSTANTS
  * ================================================================ */
-#define FRAME_SIZE 200     /* samples per frame (25 ms at 8kHz)  */
-#define NUM_FRAMES 40      /* frames per utterance (1 second)     */
-#define ENERGY_THRESHOLD 8 /* dah value mabda2y neb2a nl3b fyh bra7etna */
+#define FRAME_SIZE 200      /* samples per frame (25 ms at 8kHz)  */
+#define NUM_FRAMES 80       /* frames per utterance (1 second)     */
+#define ENERGY_THRESHOLD 20 /*dah value mabda2y neb2a nl3b fyh bra7etna */
 
 /* ================================================================
  *  DOUBLE BUFFER — shared between ISR and main()
@@ -35,6 +35,7 @@ volatile uint8_t isr_idx = 0;   /* position inside that buffer      */
 volatile uint8_t frame_rdy = 0; /* 1 = ISR finished a frame         */
 volatile uint8_t recording = 0; /* 1 = actively capturing audio     */
 char WORD[6];
+uint8_t counter = 0;
 
 /* ================================================================
  *  ISR — fires 8000 times per second (set up by Timer1_init)
@@ -87,6 +88,8 @@ static uint8_t classify(Features avg)
             min_dist = dist;
             best_word = w;
         }
+
+        printf("Word = %d and distance = %d\n", w, dist);
     }
 
     return best_word;
@@ -103,41 +106,49 @@ void outputLeds(uint8_t word)
     switch (word)
     {
     case 0: // on
+        printf("led 1 on");
         PORTA |= (1 << PA1);
         PORTA &= ~((1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7));
         PORTC &= ~(1 << PC3);
         break;
     case 1: // off
+        printf("led 2 on");
         PORTA |= (1 << PA2);
         PORTA &= ~((1 << PA1) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7));
         PORTC &= ~(1 << PC3);
         break;
     case 2: // start
+        printf("led 3 on");
         PORTA |= (1 << PA3);
         PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7));
         PORTC &= ~(1 << PC3);
         break;
     case 3: // stop
+        printf("led 4 on");
         PORTA |= (1 << PA4);
         PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA5) | (1 << PA6) | (1 << PA7));
         PORTC &= ~(1 << PC3);
         break;
     case 4: // left
+        printf("led 5 on");
         PORTA |= (1 << PA5);
         PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA6) | (1 << PA7));
         PORTC &= ~(1 << PC3);
         break;
     case 5: // right
+        printf("led 6 on");
         PORTA |= (1 << PA6);
         PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA7));
         PORTC &= ~(1 << PC3);
         break;
     case 6: // up
+        printf("led 7 on");
         PORTA |= (1 << PA7);
         PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6));
         PORTC &= ~(1 << PC3);
         break;
     case 7: // down
+        printf("led 8 on");
         PORTC |= (1 << PC3);
         PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7));
         break;
@@ -149,31 +160,39 @@ void outputLeds(uint8_t word)
 
 void outputLCD(uint8_t word)
 {
-    LCD_Clear();
+    // LCD_Clear();
     switch (word)
     {
     case 0: // on
+        printf(" i read on\n");
         strcpy(WORD, "ON");
         break;
     case 1: // off
+        printf(" i read off");
         strcpy(WORD, "OFF");
         break;
     case 2: // start
+        printf(" i read start");
         strcpy(WORD, "START");
         break;
     case 3: // stop
+        printf(" i read stop");
         strcpy(WORD, "STOP");
         break;
     case 4: // left
+        printf(" i read left");
         strcpy(WORD, "LEFT");
         break;
     case 5: // right
+        printf(" i read right");
         strcpy(WORD, "RIGHT");
         break;
     case 6: // up
+        printf(" i read up\n");
         strcpy(WORD, "UP");
         break;
     case 7: // down
+        printf(" i read down\n");
         strcpy(WORD, "DOWN");
         break;
 
@@ -201,6 +220,13 @@ int main(void)
         }
 
         uint8_t raw = ADC_read();
+        counter++;
+        if (counter >= 50)
+        {
+            printf("%d\n", raw);
+            counter = 0;
+        }
+
         int8_t dev = (int8_t)((int16_t)raw - 128);
         if (dev < 0)
             dev = -dev;
@@ -245,6 +271,7 @@ int main(void)
         avg.envelope = sum_env / NUM_FRAMES;
 
         uint8_t word = classify(avg);
+        printf("Features -> RMS : %f , ZCR : %f , ENV: %f \n", (double)avg.rms, (double)avg.zcr, (double)avg.envelope);
         outputLeds(word);
         outputLCD(word);
     }
