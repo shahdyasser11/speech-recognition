@@ -1,4 +1,5 @@
 #include "../inc/uart.h"
+#include "lcd.h"
 
 void UART_init(long USART_BAUDRATE)
 {

@@ -12,7 +12,7 @@ Features extract_frame_features(const uint8_t *frame)
 
     for (int i = 0; i < FRAME_SIZE; i++)
     {
-        int8_t s = (int8_t)((int16_t)frame[i] - 128);
+        int8_t s = (int8_t)((int16_t)frame[i] - 122);
 
         sum_sq += (int32_t)s * s;
 

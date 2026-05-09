@@ -35,8 +35,8 @@ def preprocess_audio(file_path):
     signal, _ = librosa.effects.trim(signal)
 
     # Normalize
-    if np.max(np.abs(signal)) > 0:
-        signal = signal / np.max(np.abs(signal))
+    # if np.max(np.abs(signal)) > 0:
+    #     signal = signal / np.max(np.abs(signal))
 
     return signal
 

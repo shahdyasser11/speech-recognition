@@ -4,6 +4,8 @@
 #include <avr/interrupt.h>
 #include <math.h>
 #include <stdint.h>
+#include <string.h>
+#include <util/delay.h>
 
 #include "adc.h"
 #include "timer.h"
@@ -34,7 +36,7 @@ volatile uint8_t isr_buf = 0;   /* which buffer ISR is filling now  */
 volatile uint8_t isr_idx = 0;   /* position inside that buffer      */
 volatile uint8_t frame_rdy = 0; /* 1 = ISR finished a frame         */
 volatile uint8_t recording = 0; /* 1 = actively capturing audio     */
-char WORD[6];
+char WORD[10];
 uint8_t counter = 0;
 
 /* ================================================================
@@ -72,6 +74,7 @@ static uint8_t classify(Features avg)
     norm.zcr = (avg.zcr - feature_mean[1]) / feature_std[1];
     norm.envelope = (avg.envelope - feature_mean[2]) / feature_std[2];
 
+    printf("Features -> RMS : %f , ZCR : %f , ENV: %f \n", norm.rms, norm.zcr, norm.envelope);
     float min_dist = 1e9f;
     uint8_t best_word = 0;
 
@@ -81,7 +84,7 @@ static uint8_t classify(Features avg)
         float diff_zcr = norm.zcr - word_templates[w][1];
         float diff_env = norm.envelope - word_templates[w][2];
 
-        float dist = sqrtf((diff_rms * diff_rms) + (diff_zcr * diff_zcr) + (diff_env * diff_env));
+        float dist = (diff_rms * diff_rms) + (diff_zcr * diff_zcr) + (diff_env * diff_env);
 
         if (dist < min_dist)
         {
@@ -89,7 +92,7 @@ static uint8_t classify(Features avg)
             best_word = w;
         }
 
-        printf("Word = %d and distance = %d\n", w, dist);
+        printf("Word = %d and distance = %f\n", w, dist);
     }
 
     return best_word;
@@ -160,46 +163,55 @@ void outputLeds(uint8_t word)
 
 void outputLCD(uint8_t word)
 {
-    // LCD_Clear();
+    LCD_Clear();
     switch (word)
     {
     case 0: // on
-        printf(" i read on\n");
+
         strcpy(WORD, "ON");
+        // printf(" i read on\n");
         break;
     case 1: // off
-        printf(" i read off");
+
         strcpy(WORD, "OFF");
+        printf(" i read off");
         break;
     case 2: // start
-        printf(" i read start");
+
         strcpy(WORD, "START");
+        printf(" i read start");
         break;
     case 3: // stop
-        printf(" i read stop");
+
         strcpy(WORD, "STOP");
+        printf(" i read stop");
         break;
     case 4: // left
-        printf(" i read left");
+
         strcpy(WORD, "LEFT");
+        printf(" i read left");
         break;
     case 5: // right
-        printf(" i read right");
+
         strcpy(WORD, "RIGHT");
+        printf(" i read right");
         break;
     case 6: // up
-        printf(" i read up\n");
+
         strcpy(WORD, "UP");
+        // printf(" i read up\n");
         break;
     case 7: // down
-        printf(" i read down\n");
+
         strcpy(WORD, "DOWN");
+        // printf(" i read down\n");
         break;
 
     default:
-        break;
+        return;
     }
     LCD_String_xy(0, 5, WORD);
+    printf("LCD Updated: %s\n", WORD);
 }
 
 int main(void)
@@ -208,6 +220,7 @@ int main(void)
     Timer1_init();
     Leds_init();
     LCD_Init();
+    LCD_String("Testing...");
     UART_init(9600);
     sei();
     UART_menu();
@@ -227,7 +240,7 @@ int main(void)
             counter = 0;
         }
 
-        int8_t dev = (int8_t)((int16_t)raw - 128);
+        int8_t dev = (int8_t)((int16_t)raw - 122);
         if (dev < 0)
             dev = -dev;
         if (dev < ENERGY_THRESHOLD)
@@ -271,9 +284,10 @@ int main(void)
         avg.envelope = sum_env / NUM_FRAMES;
 
         uint8_t word = classify(avg);
-        printf("Features -> RMS : %f , ZCR : %f , ENV: %f \n", avg.rms, avg.zcr, avg.envelope);
+
         outputLeds(word);
         outputLCD(word);
+        _delay_ms(200);
     }
 
     return 0;
