@@ -69,20 +69,20 @@ ISR(TIMER1_COMPA_vect)
 static uint8_t classify(Features avg)
 {
 
-    Features norm;
-    norm.rms = (avg.rms - feature_mean[0]) / feature_std[0];
-    norm.zcr = (avg.zcr - feature_mean[1]) / feature_std[1];
-    norm.envelope = (avg.envelope - feature_mean[2]) / feature_std[2];
+    // Features norm;
+    // norm.rms = (avg.rms - feature_mean[0]) / feature_std[0];
+    // norm.zcr = (avg.zcr - feature_mean[1]) / feature_std[1];
+    // norm.envelope = (avg.envelope - feature_mean[2]) / feature_std[2];
 
-    printf("Features -> RMS : %f , ZCR : %f , ENV: %f \n", norm.rms, norm.zcr, norm.envelope);
+    printf("Features -> RMS : %f , ZCR : %f , ENV: %f \n", avg.rms, avg.zcr, avg.envelope);
     float min_dist = 1e9f;
     uint8_t best_word = 0;
 
     for (uint8_t w = 0; w < NUM_WORDS; w++)
     {
-        float diff_rms = norm.rms - word_templates[w][0];
-        float diff_zcr = norm.zcr - word_templates[w][1];
-        float diff_env = norm.envelope - word_templates[w][2];
+        float diff_rms = avg.rms - word_templates[w][0];
+        float diff_zcr = avg.zcr - word_templates[w][1];
+        float diff_env = avg.envelope - word_templates[w][2];
 
         float dist = (diff_rms * diff_rms) + (diff_zcr * diff_zcr) + (diff_env * diff_env);
 
@@ -214,6 +214,65 @@ void outputLCD(uint8_t word)
     printf("LCD Updated: %s\n", WORD);
 }
 
+// void collect_word_samples(const char *word_name)
+// {
+//     float total_rms = 0, total_zcr = 0, total_env = 0;
+
+//     // Initialize PB0 with internal pull-up
+//     DDRB &= ~(1 << PB0);
+//     PORTB |= (1 << PB0);
+
+//     printf("\n--- TRAINING WORD: %s ---\n", word_name);
+
+//     for (int s = 0; s < 20; s++)
+//     {
+//         printf("Sample %d/20: Press button, THEN speak.\n", s + 1);
+
+//         // Wait for Button Press (Low)
+//         while (PINB & (1 << PB0))
+//             ;
+//         _delay_ms(50); // Debounce
+
+//         recording = 1; // Start ISR sampling
+
+//         float sum_rms = 0, sum_zcr = 0, sum_env = 0;
+
+//         // Collect 40 frames (1 second total)
+//         for (uint8_t fn = 0; fn < 40; fn++)
+//         {
+//             while (!frame_rdy)
+//                 ;
+//             frame_rdy = 0;
+
+//             uint8_t done = isr_buf ^ 1;
+//             Features f = extract_frame_features((const uint8_t *)buf[done]);
+
+//             sum_rms += f.rms;
+//             sum_zcr += f.zcr;
+//             sum_env += f.envelope;
+//         }
+
+//         recording = 0; // Stop ISR
+
+//         // Average for this 1-second sample
+//         total_rms += (sum_rms / 40);
+//         total_zcr += (sum_zcr / 40);
+//         total_env += (sum_env / 40);
+
+//         printf("  Captured! Release button.\n");
+//         while (!(PINB & (1 << PB0)))
+//             ; // Wait for release
+//         _delay_ms(200);
+//     }
+
+//     // Final Average Template for templates.h
+//     printf("\n>>> FINAL TEMPLATE FOR %s <<<\n", word_name);
+//     printf("{%f, %f, %f}\n\n",
+//            (double)(total_rms / 20),
+//            (double)(total_zcr / 20),
+//            (double)(total_env / 20));
+// }
+
 int main(void)
 {
     ADC_init();
@@ -224,69 +283,63 @@ int main(void)
     UART_init(9600);
     sei();
     UART_menu();
+
+    // collect_word_samples("JUMP");
+    DDRB &= ~(1 << PB0); // Set PB0 as input
+    PORTB |= (1 << PB0); // Enable pull-up resistor
     while (1)
     {
-        if (UART_availiable())
-        {
-            char cmd = UART_getChar(NULL);
-            UART_handle_command(cmd);
-        }
+        // 1. Wait for Button Press (PB0) to start listening
+        printf("press button to record\n");
+        while (PINB & (1 << PB0))
+            ;
+        _delay_ms(50); // Debounce
 
-        uint8_t raw = ADC_read();
-        counter++;
-        if (counter >= 50)
-        {
-            printf("%d\n", raw);
-            counter = 0;
-        }
+        LCD_Clear();
+        LCD_String("Listening...");
 
-        int8_t dev = (int8_t)((int16_t)raw - 122);
-        if (dev < 0)
-            dev = -dev;
-        if (dev < ENERGY_THRESHOLD)
-            continue;
-
+        // 2. Reset buffers and indices
         isr_buf = 0;
         isr_idx = 0;
         frame_rdy = 0;
 
-        /* accumulators — will sum features across all 40 frames --> dah 3ashan kol el 8000 byte */
         float sum_rms = 0.0f;
         float sum_zcr = 0.0f;
         float sum_env = 0.0f;
 
-        recording = 1; /* ISR starts collecting samples now */
+        recording = 1; // ISR starts collecting samples
 
-        for (uint8_t fn = 0; fn < NUM_FRAMES; fn++) // loops around all the frames
+        // 3. Collect 40 frames (1 second)
+        for (uint8_t fn = 0; fn < NUM_FRAMES; fn++)
         {
-            /* wait until ISR signals a frame is ready */
             while (!frame_rdy)
                 ;
             frame_rdy = 0;
 
-            /* ISR just swapped, so finished frame is in (isr_buf ^ 1) */
             uint8_t done = isr_buf ^ 1;
-
-            /* extract features — returns a clean Features struct */
             Features f = extract_frame_features((const uint8_t *)buf[done]);
 
-            /* accumulate */
             sum_rms += f.rms;
             sum_zcr += f.zcr;
             sum_env += f.envelope;
         }
 
-        recording = 0; /* ISR stops collecting */
+        recording = 0; // Stop ISR
 
+        // 4. Final Classification
         Features avg;
         avg.rms = sum_rms / NUM_FRAMES;
         avg.zcr = sum_zcr / NUM_FRAMES;
         avg.envelope = sum_env / NUM_FRAMES;
 
         uint8_t word = classify(avg);
-
         outputLeds(word);
         outputLCD(word);
+
+        // Wait for button release before allowing next command
+        printf("captured ! release button\n");
+        while (!(PINB & (1 << PB0)))
+            ;
         _delay_ms(200);
     }
 

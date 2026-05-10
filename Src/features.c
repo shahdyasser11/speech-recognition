@@ -12,7 +12,7 @@ Features extract_frame_features(const uint8_t *frame)
 
     for (int i = 0; i < FRAME_SIZE; i++)
     {
-        int8_t s = (int8_t)((int16_t)frame[i] - 122);
+        int8_t s = (int8_t)((int16_t)frame[i] - 116);
 
         sum_sq += (int32_t)s * s;
 
@@ -27,9 +27,9 @@ Features extract_frame_features(const uint8_t *frame)
 
     /* fill the struct and return it */
     Features result;
-    result.rms = sqrtf((float)sum_sq / FRAME_SIZE) / 128.0f;
+    result.rms = sqrtf((float)sum_sq / FRAME_SIZE) / 116.0f;
     result.zcr = (float)crossings / (2.0f * FRAME_SIZE);
-    result.envelope = ((float)sum_abs / FRAME_SIZE) / 128.0f;
+    result.envelope = ((float)sum_abs / FRAME_SIZE) / 116.0f;
 
     return result;
 }
