@@ -60,9 +60,9 @@ void UART_get_string(char *buffer, uint8_t max_len)
 void UART_menu()
 {
     printf(".....choose your option.......\n");
-    printf(" 1 - press r to start recording\n");
-    printf(" 2 - press s for system status\n");
-    printf(" 3 - press  c to clear the lcd and the leds\n");
+    // printf(" 1 - press r to start recording\n");
+    printf(" 1 - press s for system status\n");
+    printf(" 2 - press  c to clear the lcd and the leds\n");
 }
 int8_t UART_availiable()
 {
@@ -77,10 +77,6 @@ void UART_handle_command(char cmd)
 {
     switch (cmd)
     {
-    case 'r': // Force Start Recording
-        UART_send_string("\r\nManual Trigger: Speak now...\r\n");
-        // You can set a flag here to skip the Energy Threshold check
-        break;
 
     case 's': // System Status
         printf("\r\n--- System Status ---\n");

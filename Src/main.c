@@ -65,155 +65,6 @@ ISR(TIMER1_COMPA_vect)
 }
 
 /*  CLASSIFY — Euclidean distance against stored template */
-
-static uint8_t classify(Features avg)
-{
-
-    // Features norm;
-    // norm.rms = (avg.rms - feature_mean[0]) / feature_std[0];
-    // norm.zcr = (avg.zcr - feature_mean[1]) / feature_std[1];
-    // norm.envelope = (avg.envelope - feature_mean[2]) / feature_std[2];
-
-    printf("Features -> RMS : %f , ZCR : %f , ENV: %f \n", avg.rms, avg.zcr, avg.envelope);
-    float min_dist = 1e9f;
-    uint8_t best_word = 0;
-
-    for (uint8_t w = 0; w < NUM_WORDS; w++)
-    {
-        float diff_rms = avg.rms - word_templates[w][0];
-        float diff_zcr = avg.zcr - word_templates[w][1];
-        float diff_env = avg.envelope - word_templates[w][2];
-
-        float dist = (diff_rms * diff_rms) + (diff_zcr * diff_zcr) + (diff_env * diff_env);
-
-        if (dist < min_dist)
-        {
-            min_dist = dist;
-            best_word = w;
-        }
-
-        printf("Word = %d and distance = %f\n", w, dist);
-    }
-
-    return best_word;
-}
-void Leds_init()
-{
-
-    DDRA |= (1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7);
-    DDRC |= (1 << PC3);
-}
-
-void outputLeds(uint8_t word)
-{
-    switch (word)
-    {
-    case 0: // on
-        printf("led 1 on");
-        PORTA |= (1 << PA1);
-        PORTA &= ~((1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7));
-        PORTC &= ~(1 << PC3);
-        break;
-    case 1: // off
-        printf("led 2 on");
-        PORTA |= (1 << PA2);
-        PORTA &= ~((1 << PA1) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7));
-        PORTC &= ~(1 << PC3);
-        break;
-    case 2: // start
-        printf("led 3 on");
-        PORTA |= (1 << PA3);
-        PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7));
-        PORTC &= ~(1 << PC3);
-        break;
-    case 3: // stop
-        printf("led 4 on");
-        PORTA |= (1 << PA4);
-        PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA5) | (1 << PA6) | (1 << PA7));
-        PORTC &= ~(1 << PC3);
-        break;
-    case 4: // left
-        printf("led 5 on");
-        PORTA |= (1 << PA5);
-        PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA6) | (1 << PA7));
-        PORTC &= ~(1 << PC3);
-        break;
-    case 5: // right
-        printf("led 6 on");
-        PORTA |= (1 << PA6);
-        PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA7));
-        PORTC &= ~(1 << PC3);
-        break;
-    case 6: // up
-        printf("led 7 on");
-        PORTA |= (1 << PA7);
-        PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6));
-        PORTC &= ~(1 << PC3);
-        break;
-    case 7: // down
-        printf("led 8 on");
-        PORTC |= (1 << PC3);
-        PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7));
-        break;
-
-    default:
-        break;
-    }
-}
-
-void outputLCD(uint8_t word)
-{
-    LCD_Clear();
-    switch (word)
-    {
-    case 0: // on
-
-        strcpy(WORD, "ON");
-        // printf(" i read on\n");
-        break;
-    case 1: // off
-
-        strcpy(WORD, "OFF");
-        printf(" i read off");
-        break;
-    case 2: // start
-
-        strcpy(WORD, "START");
-        printf(" i read start");
-        break;
-    case 3: // stop
-
-        strcpy(WORD, "STOP");
-        printf(" i read stop");
-        break;
-    case 4: // left
-
-        strcpy(WORD, "LEFT");
-        printf(" i read left");
-        break;
-    case 5: // right
-
-        strcpy(WORD, "RIGHT");
-        printf(" i read right");
-        break;
-    case 6: // up
-
-        strcpy(WORD, "UP");
-        // printf(" i read up\n");
-        break;
-    case 7: // down
-
-        strcpy(WORD, "DOWN");
-        // printf(" i read down\n");
-        break;
-
-    default:
-        return;
-    }
-    LCD_String_xy(0, 5, WORD);
-    printf("LCD Updated: %s\n", WORD);
-}
-
 // void collect_word_samples(const char *word_name)
 // {
 //     float total_rms = 0, total_zcr = 0, total_env = 0;
@@ -224,9 +75,9 @@ void outputLCD(uint8_t word)
 
 //     printf("\n--- TRAINING WORD: %s ---\n", word_name);
 
-//     for (int s = 0; s < 20; s++)
+//     for (int s = 0; s < 10; s++)
 //     {
-//         printf("Sample %d/20: Press button, THEN speak.\n", s + 1);
+//         printf("Sample %d/10: Press button, THEN speak.\n", s + 1);
 
 //         // Wait for Button Press (Low)
 //         while (PINB & (1 << PB0))
@@ -273,6 +124,150 @@ void outputLCD(uint8_t word)
 //            (double)(total_env / 20));
 // }
 
+static uint8_t classify(Features avg)
+{
+
+    printf("Features -> RMS : %f , ZCR : %f , ENV: %f \n", avg.rms, avg.zcr, avg.envelope);
+    float min_dist = 1e9f;
+    uint8_t best_word = 0;
+
+    for (uint8_t w = 0; w < NUM_WORDS; w++)
+    {
+        float diff_rms = avg.rms - word_templates[w][0];
+        float diff_zcr = avg.zcr - word_templates[w][1];
+        float diff_env = avg.envelope - word_templates[w][2];
+
+        float dist = (diff_rms * diff_rms) + (diff_zcr * diff_zcr) + (diff_env * diff_env);
+
+        if (dist < min_dist)
+        {
+            min_dist = dist;
+            best_word = w;
+        }
+
+        printf("Word = %d and distance = %f\n", w, dist);
+    }
+
+    return best_word;
+}
+
+void Leds_init()
+{
+
+    DDRA |= (1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7);
+    DDRC |= (1 << PC3);
+}
+
+void outputLeds(uint8_t word)
+{
+    switch (word)
+    {
+    case 0: // on
+        printf("led 1 on");
+        PORTA |= (1 << PA1);
+        PORTA &= ~((1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7));
+        PORTC &= ~(1 << PC3);
+        break;
+    case 1: // off
+        printf("led 2 on");
+        PORTA |= (1 << PA2);
+        PORTA &= ~((1 << PA1) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7));
+        PORTC &= ~(1 << PC3);
+        break;
+    case 2: // start
+        printf("led 3 on");
+        PORTA |= (1 << PA3);
+        PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7));
+        PORTC &= ~(1 << PC3);
+        break;
+    case 3: // stop
+        printf("led 4 on");
+        PORTA |= (1 << PA4);
+        PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA5) | (1 << PA6) | (1 << PA7));
+        PORTC &= ~(1 << PC3);
+        break;
+        // case 4: // left
+        //     printf("led 5 on");
+        //     PORTA |= (1 << PA5);
+        //     PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA6) | (1 << PA7));
+        //     PORTC &= ~(1 << PC3);
+        //     break;
+        // case 5: // right
+        //     printf("led 6 on");
+        //     PORTA |= (1 << PA6);
+        //     PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA7));
+        //     PORTC &= ~(1 << PC3);
+        //     break;
+        // case 6: // up
+        //     printf("led 7 on");
+        //     PORTA |= (1 << PA7);
+        //     PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6));
+        //     PORTC &= ~(1 << PC3);
+        //     break;
+        // case 7: // down
+        //     printf("led 8 on");
+        //     PORTC |= (1 << PC3);
+        //     PORTA &= ~((1 << PA1) | (1 << PA2) | (1 << PA3) | (1 << PA4) | (1 << PA5) | (1 << PA6) | (1 << PA7));
+        //     break;
+
+    default:
+        break;
+    }
+}
+
+void outputLCD(uint8_t word)
+{
+    LCD_Clear();
+    switch (word)
+    {
+    case 0: // on
+
+        strcpy(WORD, "CAIRO");
+
+        break;
+    case 1: // off
+
+        strcpy(WORD, "ASYUT");
+
+        break;
+    case 2: // start
+
+        strcpy(WORD, "GHARBIA");
+
+        break;
+    case 3: // stop
+
+        strcpy(WORD, "KENA");
+
+        break;
+        // case 4: // left
+
+        //     strcpy(WORD, "LEFT");
+
+        //     break;
+        // case 5: // right
+
+        //     strcpy(WORD, "RIGHT");
+
+        //     break;
+        // case 6: // up
+
+        //     strcpy(WORD, "UP");
+        //     // printf(" i read up\n");
+        //     break;
+        // case 7: // down
+
+        //     strcpy(WORD, "DOWN");
+        //     // printf(" i read down\n");
+        //     break;
+
+    default:
+        return;
+    }
+    LCD_String_xy(0, 5, WORD);
+    printf("\n I Heared %s\n", WORD);
+}
+
 int main(void)
 {
     ADC_init();
@@ -284,12 +279,12 @@ int main(void)
     sei();
     UART_menu();
 
-    // collect_word_samples("JUMP");
+    // collect_word_samples("GHARBIA");
     DDRB &= ~(1 << PB0); // Set PB0 as input
     PORTB |= (1 << PB0); // Enable pull-up resistor
     while (1)
     {
-        // 1. Wait for Button Press (PB0) to start listening
+        // Wait for Button Press (PB0) to start listening
         printf("press button to record\n");
         while (PINB & (1 << PB0))
             ;
@@ -298,7 +293,7 @@ int main(void)
         LCD_Clear();
         LCD_String("Listening...");
 
-        // 2. Reset buffers and indices
+        // Reset buffers and indices
         isr_buf = 0;
         isr_idx = 0;
         frame_rdy = 0;
@@ -309,7 +304,7 @@ int main(void)
 
         recording = 1; // ISR starts collecting samples
 
-        // 3. Collect 40 frames (1 second)
+        // Collect 40 frames (1 second)
         for (uint8_t fn = 0; fn < NUM_FRAMES; fn++)
         {
             while (!frame_rdy)
@@ -326,7 +321,7 @@ int main(void)
 
         recording = 0; // Stop ISR
 
-        // 4. Final Classification
+        //  Final Classification
         Features avg;
         avg.rms = sum_rms / NUM_FRAMES;
         avg.zcr = sum_zcr / NUM_FRAMES;
